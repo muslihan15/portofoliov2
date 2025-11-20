@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { db, collection } from "../firebase";
 import { getDocs } from "firebase/firestore";
 import PropTypes from "prop-types";
-import SwipeableViews from "react-swipeable-views";
 import { useTheme } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Tabs from "@mui/material/Tabs";
@@ -14,7 +13,6 @@ import Certificate from "../Components/Certificate";
 import PIcon from "../Components/CardIcon";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { styled } from "@mui/system";
 
 function TabPanel(props) {
   useEffect(() => {
@@ -28,13 +26,13 @@ function TabPanel(props) {
     <div
       role="tabpanel"
       hidden={value !== index}
-      id={`full-width-tabpanel-${index}`}
-      aria-labelledby={`full-width-tab-${index}`}
+      id={`tab-panel-${index}`}
+      aria-labelledby={`tab-${index}`}
       {...other}
     >
       {value === index && (
         <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
+          <Typography component="div">{children}</Typography>
         </Box>
       )}
     </div>
@@ -49,8 +47,8 @@ TabPanel.propTypes = {
 
 function a11yProps(index) {
   return {
-    id: `full-width-tab-${index}`,
-    "aria-controls": `full-width-tabpanel-${index}`,
+    id: `tab-${index}`,
+    "aria-controls": `tab-panel-${index}`,
   };
 }
 
@@ -67,19 +65,16 @@ export default function FullWidthTabs() {
       try {
         const projectCollection = collection(db, "projects");
         const certificateCollection = collection(db, "certificates");
-        const projectQuerySnapshot = await getDocs(projectCollection);
-        const certificateQuerySnapshot = await getDocs(certificateCollection);
 
-        const projectData = projectQuerySnapshot.docs.map((doc) => doc.data());
-        const certificateData = certificateQuerySnapshot.docs.map((doc) => doc.data());
+        const projectDocs = await getDocs(projectCollection);
+        const certificateDocs = await getDocs(certificateCollection);
 
-        setProjects(projectData);
-        setCertificates(certificateData);
+        setProjects(projectDocs.docs.map((doc) => doc.data()));
+        setCertificates(certificateDocs.docs.map((doc) => doc.data()));
       } catch (error) {
-        console.error("Error fetching data from Firebase:", error);
+        console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
   }, []);
 
@@ -87,24 +82,8 @@ export default function FullWidthTabs() {
     setValue(newValue);
   };
 
-  const handleShowMoreProjects = () => {
-    setShowAllProjects(true);
-  };
-
-  const handleShowMoreCertificates = () => {
-    setShowAllCertificates(true);
-  };
-
-  const handleShowLessProjects = () => {
-    setShowAllProjects(false);
-  };
-
-  const handleShowLessCertificates = () => {
-    setShowAllCertificates(false);
-  };
-
   return (
-    <div className="md:px-[10%]  md:mt-20 mt-10" id="Tabs" data-aos="fade-up" data-aos-duration="800">
+    <div className="md:px-[10%] md:mt-20 mt-10" id="Tabs" data-aos="fade-up" data-aos-duration="800">
       <Box sx={{ width: "100%" }}>
         <AppBar position="static" sx={{ bgcolor: "transparent" }} className="px-[6%]">
           <Tabs
@@ -125,7 +104,7 @@ export default function FullWidthTabs() {
               label="Project"
               {...a11yProps(0)}
               sx={{
-                fontWeight: "Bold",
+                fontWeight: "bold",
                 color: "#ced4d7",
                 fontSize: ["1rem", "2rem"],
               }}
@@ -134,7 +113,7 @@ export default function FullWidthTabs() {
               label="Certificate"
               {...a11yProps(1)}
               sx={{
-                fontWeight: "Bold",
+                fontWeight: "bold",
                 color: "#ced4d7",
                 fontSize: ["1rem", "2rem"],
               }}
@@ -143,95 +122,90 @@ export default function FullWidthTabs() {
               label="Tech Stack"
               {...a11yProps(2)}
               sx={{
-                fontWeight: "Bold",
+                fontWeight: "bold",
                 color: "#ced4d7",
                 fontSize: ["1rem", "2rem"],
               }}
             />
           </Tabs>
         </AppBar>
-        <SwipeableViews
-          axis={theme.direction === "rtl" ? "x-reverse" : "x"}
-          index={value}
-          onChangeIndex={setValue}
-        >
-          <TabPanel value={value} index={0} dir={theme.direction}>
-            <div className="container mx-auto flex justify-center items-center overflow-hidden ">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {(showAllProjects ? projects : projects.slice(0, 6)).map((project, index) => (
-  <div key={index} data-aos="fade-up" data-aos-duration="1000">
-    <CardProject
-      Img={project.Img}
-      Title={project.Title}
-      Description={
-        project.Description.split(".")[0] + "."
-      } // Ambil kalimat pertama saja
-      Link={project.Link}
-    />
-  </div>
-))}
-              </div>
-             
-            </div>
-            {projects.length > 6 && (
-                <div className="mt-4 text-[#ced4d7] ">
-                  {showAllProjects ? (
-                    <button onClick={handleShowLessProjects} className="opacity-75 italic text-sm">
-                      See Less
-                    </button>
-                  ) : (
-                    <button onClick={handleShowMoreProjects} className="opacity-75 text-sm">
-                      See More
-                    </button>
-                  )}
-                </div>
-              )}
-          </TabPanel>
-          <TabPanel value={value} index={1} dir={theme.direction}>
-            <div className="container mx-auto flex justify-center items-center overflow-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-3 md:gap-5 gap-4">
-                {(showAllCertificates ? certificates : certificates.slice(0, 6)).map((Sertifikat, index) => (
-                  <div key={index} data-aos="fade-up" data-aos-duration="1000">
-                    <Certificate ImgSertif={Sertifikat.Img} />
-                  </div>
-                ))}
-              </div>
-              </div>
-              {certificates.length > 6 && (
-                <div className="mt-4 text-[#ced4d7]" >
-                  {showAllCertificates ? (
-                    <button onClick={handleShowLessCertificates} className="opacity-75 italic text-sm">
-                      See Less
-                    </button>
-                  ) : (
-                    <button onClick={handleShowMoreCertificates} className="opacity-75 text-sm">
-                      See More
-                    </button>
-                  )}
-                </div>
-              )}
 
-  
-          
-          </TabPanel>
-          <TabPanel value={value} index={2} dir={theme.direction}>
-            <div className="container mx-auto flex justify-center items-center overflow-hidden">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-                {/* Programming icon / tech stack  */}
-                <PIcon PIcon="html.svg" Language="HTML" />
-                <PIcon PIcon="css.svg" Language="CSS" />
-                <PIcon PIcon="javascript.svg" Language="JavaScript" />
-                <PIcon PIcon="tailwind.svg" Language="Tailwind CSS" />
-                <PIcon PIcon="reactjs.svg" Language="ReactJS" />
-                <PIcon PIcon="vite.svg" Language="Vite" />
-                <PIcon PIcon="nodejs.svg" Language="Node JS" />
-                <PIcon PIcon="bootstrap.svg" Language="Bootstrap" />
-                <PIcon PIcon="firebase.svg" Language="Firebase" />
-                <PIcon PIcon="MUI.svg" Language="Material UI" />
-              </div>
+        {/* PANEL PROJECT */}
+        <TabPanel value={value} index={0} dir={theme.direction}>
+          <div className="container mx-auto flex justify-center items-center overflow-hidden ">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {(showAllProjects ? projects : projects.slice(0, 6)).map((project, index) => (
+                <div key={index} data-aos="fade-up" data-aos-duration="1000">
+                  <CardProject
+                    Img={project.Img}
+                    Title={project.Title}
+                    Description={project.Description.split(".")[0] + "."}
+                    Link={project.Link}
+                  />
+                </div>
+              ))}
             </div>
-          </TabPanel>
-        </SwipeableViews>
+          </div>
+
+          {projects.length > 6 && (
+            <div className="mt-4 text-[#ced4d7]">
+              {showAllProjects ? (
+                <button onClick={() => setShowAllProjects(false)} className="opacity-75 italic text-sm">
+                  See Less
+                </button>
+              ) : (
+                <button onClick={() => setShowAllProjects(true)} className="opacity-75 text-sm">
+                  See More
+                </button>
+              )}
+            </div>
+          )}
+        </TabPanel>
+
+        {/* PANEL CERTIFICATE */}
+        <TabPanel value={value} index={1} dir={theme.direction}>
+          <div className="container mx-auto flex justify-center items-center overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-3 md:gap-5 gap-4">
+              {(showAllCertificates ? certificates : certificates.slice(0, 6)).map((sertif, index) => (
+                <div key={index} data-aos="fade-up" data-aos-duration="1000">
+                  <Certificate ImgSertif={sertif.Img} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {certificates.length > 6 && (
+            <div className="mt-4 text-[#ced4d7]">
+              {showAllCertificates ? (
+                <button onClick={() => setShowAllCertificates(false)} className="opacity-75 italic text-sm">
+                  See Less
+                </button>
+              ) : (
+                <button onClick={() => setShowAllCertificates(true)} className="opacity-75 text-sm">
+                  See More
+                </button>
+              )}
+            </div>
+          )}
+        </TabPanel>
+
+        {/* PANEL TECH STACK */}
+        <TabPanel value={value} index={2} dir={theme.direction}>
+          <div className="container mx-auto flex justify-center items-center overflow-hidden">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+              <PIcon PIcon="html.svg" Language="HTML" />
+              <PIcon PIcon="css.svg" Language="CSS" />
+              <PIcon PIcon="javascript.svg" Language="JavaScript" />
+              <PIcon PIcon="tailwind.svg" Language="Tailwind CSS" />
+              <PIcon PIcon="reactjs.svg" Language="ReactJS" />
+              <PIcon PIcon="vite.svg" Language="Vite" />
+              <PIcon PIcon="nodejs.svg" Language="Node JS" />
+              <PIcon PIcon="bootstrap.svg" Language="Bootstrap" />
+              <PIcon PIcon="firebase.svg" Language="Firebase" />
+              <PIcon PIcon="MUI.svg" Language="Material UI" />
+            </div>
+          </div>
+        </TabPanel>
       </Box>
     </div>
   );
